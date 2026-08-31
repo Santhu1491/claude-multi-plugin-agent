@@ -26,15 +26,34 @@ public class Main {
     }
     
     public static void main(String[] args) {
-        System.out.println("Java Plugin v" + VERSION + " ready");
-        
-        Main plugin = new Main();
-        System.out.println("Plugin components initialized:");
-        System.out.println("  - Parser");
-        System.out.println("  - AST Analyzer");
-        System.out.println("  - Code Search");
-        System.out.println("  - Executor");
+
+    if (args.length < 1) {
+        System.out.println("ERROR|Operation is required");
+        return;
     }
+
+    String operation = args[0];
+    String payload = args.length > 1 ? args[1] : "";
+
+    Main plugin = new Main();
+
+    PluginRequest request = new PluginRequest(
+        operation,
+        payload
+    );
+
+    PluginResponse response = plugin.execute(request);
+
+    if (response.success()) {
+        System.out.println(
+            "SUCCESS|" + response.result()
+        );
+    } else {
+        System.out.println(
+            "ERROR|" + response.result()
+        );
+    }
+}
     
     /**
      * Execute a plugin operation.

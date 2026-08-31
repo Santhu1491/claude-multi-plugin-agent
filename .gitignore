@@ -7,3 +7,5 @@ venv/
 target/
 .idea/
 .vscode/
+# Python package/build metadata
+*.egg-info/

@@ -3,6 +3,7 @@ package com.claude.plugin.java.tools;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.regex.Pattern;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
 
