@@ -7,7 +7,11 @@ def test_agent_uses_claude():
     agent = Agent(settings)
 
     request = {
-        "message": "Create a Python REST API for customer registration"
+    "message": (
+        "Update the existing Python plugin so that it can support "
+        "a new operation called validate. Identify which existing "
+        "repository files should be modified."
+    )
     }
 
     result = agent.process_request(request)

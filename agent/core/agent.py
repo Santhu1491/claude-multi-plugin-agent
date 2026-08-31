@@ -2,10 +2,12 @@
 
 from typing import Any
 
+from agent.core import workspace
 from agent.core.router import Router
 from agent.core.planner import Planner
 from agent.core.executor import Executor
 from agent.core.context import Context
+from agent.core.workspace import Workspace
 from agent.config.settings import Settings
 from agent.integrations.claude import ClaudeClient
 from agent.integrations.java_plugin_adapter import JavaPluginAdapter
@@ -33,8 +35,18 @@ class Agent:
         # Store original request in context
         self.context.add_message(request)
 
+        workspace = Workspace(".")
+        workspace_summary = workspace.build_summary(
+            max_files=100,
+            max_chars_per_file=1500,
+        )
+
         # Ask Claude to understand the requirement
-        claude_analysis = self._analyze_with_claude(request)
+        # claude_analysis = self._analyze_with_claude(request)
+        claude_analysis = self._analyze_with_claude(
+            request,
+            workspace_summary,
+        )
 
         # Add Claude's analysis back into the request
         enriched_request = {
@@ -64,38 +76,52 @@ class Agent:
         }
 
     def _analyze_with_claude(
-        self,
-        request: dict[str, Any],
+    self,
+    request: dict[str, Any],
+    workspace_summary: str,
     ) -> str:
         """Ask Claude to analyze the development request."""
 
         prompt = f"""
-You are the reasoning engine for a software development agent.
+        You are the reasoning engine for a software development agent.
 
-The agent currently supports only two technologies:
+        The agent currently supports only two technologies:
 
-1. Python
-2. Java
+        1. Python
+        2. Java
 
-Analyze the following development request.
+        Analyze the following development request.
 
-Request:
-{request}
+        Request:
+        {request}
 
-Return:
+        Repository context:
+        {workspace_summary}
 
-Technology: <python or java>
+        Use the repository context to understand the existing project structure
+        and identify relevant files that may need to be created or modified.
 
-Understanding:
-<short explanation of what needs to be implemented>
+        Return:
 
-Plan:
-1. <step>
-2. <step>
-3. <step>
+        Technology: <python or java>
 
-Do not generate source code yet.
-"""
+        Understanding:
+        <short explanation>
+
+        Relevant Files:
+        List the exact repository-relative paths of existing files that are
+        relevant to this request. Prefer existing files from the repository
+        context. Do not invent paths unless a new file is genuinely required.
+        
+        - <repository-relative path>
+
+        Plan:
+        1. <step>
+        2. <step>
+        3. <step>
+
+        Do not generate source code yet.
+        """
 
         return self.claude.generate(prompt)
 
