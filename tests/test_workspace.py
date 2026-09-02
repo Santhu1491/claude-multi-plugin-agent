@@ -82,3 +82,56 @@ def test_workspace_builds_summary(tmp_path: Path):
     assert "README.md" in summary
     assert "def hello()" in summary
     assert "# Example Project" in summary
+
+def test_workspace_builds_file_tree(tmp_path: Path):
+    (tmp_path / "app.py").write_text(
+        "print('hello')",
+        encoding="utf-8",
+    )
+
+    src_dir = tmp_path / "src"
+    src_dir.mkdir()
+
+    (src_dir / "service.py").write_text(
+        "class Service:\n    pass",
+        encoding="utf-8",
+    )
+
+    workspace = Workspace(tmp_path)
+
+    tree = workspace.build_file_tree()
+
+    print("\nRepository file tree:")
+    print(tree)
+
+    assert "app.py" in tree
+    assert "src" in tree
+    assert "service.py" in tree
+
+def test_workspace_builds_context_for_selected_files(tmp_path: Path):
+    (tmp_path / "app.py").write_text(
+        "def hello():\n    return 'hello'",
+        encoding="utf-8",
+    )
+
+    (tmp_path / "other.py").write_text(
+        "print('other')",
+        encoding="utf-8",
+    )
+
+    workspace = Workspace(tmp_path)
+
+    context = workspace.build_context_for_files(
+        [
+            "app.py",
+            "does-not-exist.py",
+        ]
+    )
+
+    print("\nFocused context:")
+    print(context)
+
+    assert "app.py" in context
+    assert "def hello()" in context
+    assert "other.py" not in context
+    assert "does-not-exist.py" not in context

@@ -8,6 +8,7 @@ from agent.core.planner import Planner
 from agent.core.executor import Executor
 from agent.core.context import Context
 from agent.core.workspace import Workspace
+from agent.core.file_selector import FileSelector
 from agent.config.settings import Settings
 from agent.integrations.claude import ClaudeClient
 from agent.integrations.java_plugin_adapter import JavaPluginAdapter
@@ -22,6 +23,7 @@ class Agent:
         self.context = Context()
 
         self.claude = ClaudeClient()
+        self.file_selector = FileSelector(self.claude)
 
         self.router = Router()
         self.planner = Planner()
@@ -36,16 +38,22 @@ class Agent:
         self.context.add_message(request)
 
         workspace = Workspace(".")
-        workspace_summary = workspace.build_summary(
-            max_files=100,
-            max_chars_per_file=1500,
+
+        file_tree = workspace.build_file_tree()
+
+        selected_files = self.file_selector.select_files(
+            request,
+            file_tree,
         )
 
-        # Ask Claude to understand the requirement
-        # claude_analysis = self._analyze_with_claude(request)
+        workspace_context = workspace.build_context_for_files(
+            selected_files,
+            max_chars_per_file=3000,
+        )
+
         claude_analysis = self._analyze_with_claude(
             request,
-            workspace_summary,
+            workspace_context,
         )
 
         # Add Claude's analysis back into the request

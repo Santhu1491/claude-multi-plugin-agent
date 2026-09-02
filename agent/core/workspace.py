@@ -151,3 +151,60 @@ class Workspace:
         path = Path(relative_path)
     
         return path.suffix.lower() in allowed_suffixes
+
+    def build_file_tree(self, max_files: int = 300) -> str:
+        """Return a compact repository file listing."""
+
+        files = self.list_files()
+
+        selected_files = files[:max_files]
+
+        lines = [
+            f"Workspace: {self.root}",
+            f"Total files discovered: {len(files)}",
+            "",
+            "Repository files:",
+        ]
+
+        for relative_path in selected_files:
+            lines.append(f"- {relative_path}")
+
+        if len(files) > max_files:
+            lines.append(
+                f"- ... {len(files) - max_files} additional files omitted"
+            )
+
+        return "\n".join(lines)
+
+    def build_context_for_files(
+        self,
+        relative_paths: list[str],
+        max_chars_per_file: int = 3000,
+    ) -> str:
+        """Build focused context from selected repository files."""
+    
+        valid_files = set(self.list_files())
+        sections: list[str] = []
+    
+        for relative_path in relative_paths:
+            if relative_path not in valid_files:
+                continue
+            
+            if not self._is_text_candidate(relative_path):
+                continue
+            
+            try:
+                content = self.read_file(relative_path)
+            except (OSError, ValueError, FileNotFoundError):
+                continue
+            
+            preview = content[:max_chars_per_file]
+    
+            sections.append(
+                f"--- {relative_path} ---\n{preview}"
+            )
+    
+            if len(content) > max_chars_per_file:
+                sections.append("[content truncated]")
+    
+        return "\n\n".join(sections)
