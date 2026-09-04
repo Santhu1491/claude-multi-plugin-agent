@@ -53,11 +53,15 @@ def test_change_executor_preview(tmp_path: Path):
         writer=writer,
         planner=FakePlanner(),
         builder=FakeBuilder(),
+        claude=FakeClaude(),
     )
+
+    executor.healing_executor = FakeHealingExecutor(writer)
 
     result = executor.execute(
         request={"message": "Update app"},
         repository_context="test context",
+        technology="python",
         apply_changes=False,
     )
 
@@ -85,11 +89,15 @@ def test_change_executor_applies_changes(
         writer=writer,
         planner=FakePlanner(),
         builder=FakeBuilder(),
+        claude=FakeClaude(),
     )
+
+    executor.healing_executor = FakeHealingExecutor(writer)
 
     result = executor.execute(
         request={"message": "Update app"},
         repository_context="test context",
+        technology="python",
         apply_changes=True,
     )
 
@@ -98,3 +106,29 @@ def test_change_executor_applies_changes(
     assert (
         tmp_path / "app.py"
     ).read_text(encoding="utf-8") == "new content"
+
+class FakeClaude:
+    def generate(self, prompt: str) -> str:
+        return "fixed content"
+
+class FakeHealingExecutor:
+    def __init__(self, writer):
+        self.writer = writer
+
+    def execute(
+        self,
+        request,
+        change,
+        repository_context,
+        technology,
+    ):
+        self.writer.apply_proposed_change(change)
+
+        return type(
+            "FakeHealingResult",
+            (),
+            {
+                "success": True,
+                "attempts": 1,
+            },
+        )()

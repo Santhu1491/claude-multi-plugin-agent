@@ -4,6 +4,11 @@ import pytest
 import subprocess
 from pathlib import Path
 
+MAVEN = (
+    r"C:\Program Files\Apache\maven"
+    r"\apache-maven-3.9.16\bin\mvn.cmd"
+)
+
 
 class TestJavaPluginIntegration:
     """Integration tests for the Java plugin."""
@@ -16,7 +21,7 @@ class TestJavaPluginIntegration:
     def test_java_plugin_builds(self, java_plugin_path):
         """Test that Java plugin builds successfully."""
         result = subprocess.run(
-            ["mvn", "compile"],
+            [MAVEN, "compile"],
             cwd=java_plugin_path,
             capture_output=True,
             text=True
@@ -27,7 +32,7 @@ class TestJavaPluginIntegration:
     def test_java_plugin_tests(self, java_plugin_path):
         """Test that Java plugin tests pass."""
         result = subprocess.run(
-            ["mvn", "test"],
+            [MAVEN, "test"],
             cwd=java_plugin_path,
             capture_output=True,
             text=True
@@ -39,7 +44,7 @@ class TestJavaPluginIntegration:
     def test_java_plugin_main_runs(self, java_plugin_path):
         """Test that Java plugin main class runs."""
         result = subprocess.run(
-            ["mvn", "exec:java", "-Dexec.mainClass=com.claude.plugin.java.Main"],
+            [MAVEN, "exec:java", "-Dexec.mainClass=com.claude.plugin.java.Main"],
             cwd=java_plugin_path,
             capture_output=True,
             text=True,

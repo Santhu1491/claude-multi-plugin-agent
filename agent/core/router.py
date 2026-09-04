@@ -7,9 +7,9 @@ class Router:
     """Routes requests to appropriate plugins based on content analysis."""
 
     def __init__(self) -> None:
-        self.routes: dict[str, list[str]] = {
-            "python": ["analyze", "parse", "python", "code"],
-            "java": ["compile", "maven", "java", "spring"],
+        self.routes = {
+            "python": ["python", "pytest", "pip"],
+            "java": ["java", "compile", "maven", "spring"],
         }
 
     def route(self, request: dict[str, Any]) -> str:
