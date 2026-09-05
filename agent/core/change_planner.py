@@ -54,21 +54,34 @@ Rules:
 
         response = self.claude.generate(prompt)
 
+        cleaned_response = response.strip()
+
+        if cleaned_response.startswith("```"):
+            lines = cleaned_response.splitlines()
+
+            if lines and lines[0].startswith("```"):
+                lines = lines[1:]
+
+            if lines and lines[-1].strip() == "```":
+                lines = lines[:-1]
+
+            cleaned_response = "\n".join(lines).strip()
+
         try:
-            plan = json.loads(response)
+            plan = json.loads(cleaned_response)
         except json.JSONDecodeError as exc:
-            raise ValueError(
+            raise TypeError(
                 "Claude returned an invalid change plan."
             ) from exc
 
         if not isinstance(plan, list):
-            raise ValueError(
+            raise TypeError(
                 "Change plan must be a list."
             )
 
         for change in plan:
             if not isinstance(change, dict):
-                raise ValueError(
+                raise TypeError(
                     "Each change must be an object."
                 )
 
@@ -76,12 +89,12 @@ Rules:
                 "modify",
                 "create",
             }:
-                raise ValueError(
+                raise TypeError(
                     "Unsupported change action."
                 )
 
             if not change.get("path"):
-                raise ValueError(
+                raise TypeError(
                     "Change path is required."
                 )
 

@@ -1,5 +1,5 @@
-from agent.core.azure_boards_workflow import AzureBoardsWorkflow
 from agent.core.azure_boards_publisher import AzureBoardsPublisher
+from agent.core.azure_boards_workflow import AzureBoardsWorkflow
 from agent.core.work_item_mapper import WorkItemMapper
 
 
@@ -88,21 +88,26 @@ class FakeGitClient:
     def __init__(self):
         self.calls = []
 
+    def has_changes(self):
+        self.calls.append(
+            ("has_changes",)
+        )
+        return True
+
     def create_branch(self, branch_name):
         self.calls.append(
             ("create_branch", branch_name)
         )
 
-    def stage_all(self):
+    def ensure_safe_branch(self):
         self.calls.append(
-            ("stage_all",)
+            ("ensure_safe_branch",)
         )
 
     def commit(self, message):
         self.calls.append(
             ("commit", message)
         )
-
         return "abc123"
 
     def push(self, branch_name):
@@ -162,7 +167,7 @@ def test_azure_boards_end_to_end_workflow():
         == "Add validation support"
     )
 
-    assert result["result"]["success"] is True
+    assert result["agent_result"]["success"] is True
 
     assert result["publish_result"]["branch"] == (
         "feature/work-item-123"

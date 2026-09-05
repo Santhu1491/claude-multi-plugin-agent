@@ -19,7 +19,8 @@ class TestRunner:
                 cmd,
                 capture_output=True,
                 text=True,
-                timeout=60
+                timeout=60,
+                check=False,
             )
             
             return {
@@ -33,7 +34,7 @@ class TestRunner:
                 "success": False,
                 "error": "Tests timed out after 60 seconds"
             }
-        except Exception as e:
+        except OSError as e:
             return {
                 "success": False,
                 "error": str(e)

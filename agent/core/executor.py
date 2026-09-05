@@ -1,8 +1,9 @@
 """Task execution engine."""
 
 from typing import Any
-from agent.models.task import Task
+
 from agent.core.context import Context
+from agent.models.task import Task
 
 
 class Executor:
@@ -47,5 +48,5 @@ class Executor:
                     "parameters": task.parameters
                 })
             return {"success": False, "error": "Plugin has no execute method"}
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             return {"success": False, "error": str(e)}

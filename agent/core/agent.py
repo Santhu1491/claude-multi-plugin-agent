@@ -2,17 +2,17 @@
 
 from typing import Any
 
-from agent.core import workspace
-from agent.core.router import Router
-from agent.core.planner import Planner
-from agent.core.executor import Executor
-from agent.core.context import Context
-from agent.core.workspace import Workspace
-from agent.core.file_selector import FileSelector
+from python_plugin.main import PythonPlugin
+
 from agent.config.settings import Settings
+from agent.core.context import Context
+from agent.core.executor import Executor
+from agent.core.file_selector import FileSelector
+from agent.core.planner import Planner
+from agent.core.router import Router
+from agent.core.workspace import Workspace
 from agent.integrations.claude import ClaudeClient
 from agent.integrations.java_plugin_adapter import JavaPluginAdapter
-from python_plugin.main import PythonPlugin
 
 
 class Agent:
@@ -78,6 +78,7 @@ class Agent:
         )
 
         return {
+            "success": result.get("success", False),
             "claude_analysis": claude_analysis,
             "plugin": plugin_name,
             "result": result,

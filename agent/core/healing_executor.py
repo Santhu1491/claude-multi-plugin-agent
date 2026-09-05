@@ -1,9 +1,9 @@
 """Coordinate quality checks, repair generation, and retries."""
 
+from agent.core.quality_gate import QualityGate
 from agent.core.repair_generator import RepairGenerator
 from agent.core.self_healer import SelfHealer
 from agent.core.workspace_writer import WorkspaceWriter
-from agent.core.quality_gate import QualityGate
 from agent.models.proposed_change import ProposedChange
 from agent.models.quality_result import QualityResult
 

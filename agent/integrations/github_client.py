@@ -1,6 +1,7 @@
 """GitHub pull request integration."""
 
 import os
+
 import requests
 
 

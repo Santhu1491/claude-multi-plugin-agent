@@ -1,7 +1,7 @@
 """Publish successful Azure Boards changes through Git."""
 
-from agent.integrations.git_client import GitClient
 from agent.integrations.azure_devops_client import AzureDevOpsClient
+from agent.integrations.git_client import GitClient
 
 
 class AzureBoardsPublisher:
@@ -23,36 +23,46 @@ class AzureBoardsPublisher:
         agent_result: dict,
     ) -> dict:
         """Publish successful agent changes."""
-    
+
+        if not agent_result.get("success", False):
+            raise RuntimeError(
+                "Agent execution failed. Changes will not be published."
+            )
+
         work_item_id = request.get("work_item_id")
-    
+
         branch_name = (
             f"feature/work-item-{work_item_id}"
         )
-    
+
         commit_message = (
             f"feat: implement work item {work_item_id}"
         )
-    
+
         pr_title = (
             request.get("message")
             or f"Implement work item {work_item_id}"
         )
-    
+
+        if not self.git_client.has_changes():
+            raise RuntimeError(
+                "No repository changes available to publish."
+            )
+
         self.git_client.create_branch(
             branch_name
         )
-    
-        self.git_client.stage_all()
-    
+
+        self.git_client.ensure_safe_branch()
+
         commit_hash = self.git_client.commit(
             commit_message
         )
-    
+
         self.git_client.push(
             branch_name
         )
-    
+
         pr = self.azure_client.create_pull_request(
             repository_id=self.repository_id,
             source_branch=branch_name,
@@ -75,7 +85,7 @@ class AzureBoardsPublisher:
                 )
             },
         )
-    
+
         return {
             "branch": branch_name,
             "commit": commit_hash,

@@ -1,5 +1,5 @@
-from agent.core.agent import Agent
 from agent.config.settings import Settings
+from agent.core.agent import Agent
 
 
 def test_agent_uses_claude():

@@ -1,6 +1,5 @@
 """Request routing logic."""
 
-from typing import Any
 
 
 class Router:

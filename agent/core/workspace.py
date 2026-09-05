@@ -1,13 +1,14 @@
 """Repository workspace inspection utilities."""
 
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Iterable
+from typing import ClassVar
 
 
 class Workspace:
     """Provides safe read-only access to a source repository."""
 
-    DEFAULT_IGNORED_DIRS = {
+    DEFAULT_IGNORED_DIRS: ClassVar[set[str]] = {
         ".git",
         ".idea",
         ".vscode",

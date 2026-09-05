@@ -1,72 +1,86 @@
-"""Code execution engine."""
+"""Python code execution utilities."""
 
+import subprocess
 import sys
-from io import StringIO
-from typing import Any
+import tempfile
+from pathlib import Path
 
 
 class Executor:
-    """Execute Python code and capture results."""
+    """Executes Python code in a separate subprocess."""
 
-    def execute(self, code: str, timeout: int = 5) -> dict[str, Any]:
-        """Execute Python code and return results."""
-        # Capture stdout
-        old_stdout = sys.stdout
-        sys.stdout = captured_output = StringIO()
-        
-        result = {
-            "success": False,
-            "output": "",
-            "error": None,
-            "return_value": None
-        }
-        
-        try:
-            # Create a namespace for execution
-            namespace = {}
-            
-            # Execute the code
-            exec(code, namespace)
-            
-            result["success"] = True
-            result["output"] = captured_output.getvalue()
-            
-            # Try to get a return value if there's a main() function
-            if 'main' in namespace:
-                result["return_value"] = namespace['main']()
-            
-        except Exception as e:
-            result["error"] = str(e)
-            result["output"] = captured_output.getvalue()
-        
-        finally:
-            sys.stdout = old_stdout
-        
-        return result
+    def execute(
+        self,
+        code: str,
+        timeout: int = 30,
+    ) -> dict:
+        """Execute Python code and capture output."""
 
-    def execute_function(self, code: str, function_name: str, *args: Any, **kwargs: Any) -> dict[str, Any]:
-        """Execute a specific function from code."""
-        namespace = {}
-        
-        try:
-            exec(code, namespace)
-            
-            if function_name not in namespace:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            script_path = Path(temp_dir) / "script.py"
+
+            script_path.write_text(
+                code,
+                encoding="utf-8",
+            )
+
+            try:
+                result = subprocess.run(
+                    [
+                        sys.executable,
+                        str(script_path),
+                    ],
+                    capture_output=True,
+                    text=True,
+                    timeout=timeout,
+                    check=False,
+                )
+
+                return {
+                    "success": result.returncode == 0,
+                    "output": result.stdout,
+                    "error": result.stderr,
+                    "return_code": result.returncode,
+                }
+
+            except subprocess.TimeoutExpired:
                 return {
                     "success": False,
-                    "error": f"Function '{function_name}' not found"
+                    "output": "",
+                    "error": (
+                        f"Execution timed out after "
+                        f"{timeout} seconds"
+                    ),
+                    "return_code": None,
                 }
-            
-            func = namespace[function_name]
-            result = func(*args, **kwargs)
-            
-            return {
-                "success": True,
-                "return_value": result
-            }
-        
-        except Exception as e:
-            return {
-                "success": False,
-                "error": str(e)
-            }
+
+            except OSError as exc:
+                return {
+                    "success": False,
+                    "output": "",
+                    "error": str(exc),
+                    "return_code": None,
+                }
+
+    def execute_function(
+        self,
+        code: str,
+        function_name: str,
+        timeout: int = 30,
+    ) -> dict:
+        """Execute a named function from generated Python code."""
+
+        wrapper_code = (
+            f"{code}\n\n"
+            f"if '{function_name}' not in globals():\n"
+            f"    raise RuntimeError("
+            f"'Function {function_name} not found')\n"
+            f"\n"
+            f"result = globals()['{function_name}']()\n"
+            f"print(repr(result))\n"
+        )
+
+        return self.execute(
+            wrapper_code,
+            timeout=timeout,
+        )

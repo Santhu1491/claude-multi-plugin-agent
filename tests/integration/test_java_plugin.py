@@ -1,8 +1,9 @@
 """Integration tests for Java plugin."""
 
-import pytest
 import subprocess
 from pathlib import Path
+
+import pytest
 
 MAVEN = (
     r"C:\Program Files\Apache\maven"
@@ -24,7 +25,8 @@ class TestJavaPluginIntegration:
             [MAVEN, "compile"],
             cwd=java_plugin_path,
             capture_output=True,
-            text=True
+            text=True,
+            check=False,
         )
         
         assert result.returncode == 0, f"Maven build failed: {result.stderr}"
@@ -35,7 +37,8 @@ class TestJavaPluginIntegration:
             [MAVEN, "test"],
             cwd=java_plugin_path,
             capture_output=True,
-            text=True
+            text=True,
+            check=False,
         )
         
         # Tests should pass or at least compile
@@ -48,7 +51,8 @@ class TestJavaPluginIntegration:
             cwd=java_plugin_path,
             capture_output=True,
             text=True,
-            timeout=30
+            timeout=30,
+            check=False,
         )
         
         # Should run without errors

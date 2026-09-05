@@ -32,8 +32,8 @@ class CodeSearch:
                             "line": line_num,
                             "content": line.strip()
                         })
-        except Exception:
-            pass
+        except (OSError, UnicodeError):
+            return matches
         
         return matches
 

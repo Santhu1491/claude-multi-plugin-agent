@@ -1,16 +1,17 @@
 """Main Python plugin interface."""
 
 from typing import Any
-from python_plugin.analyzer.parser import Parser
+
 from python_plugin.analyzer.ast_analyzer import ASTAnalyzer
 from python_plugin.analyzer.dependency_analyzer import DependencyAnalyzer
-from python_plugin.tools.code_search import CodeSearch
-from python_plugin.tools.code_reader import CodeReader
-from python_plugin.tools.code_writer import CodeWriter
-from python_plugin.tools.test_runner import TestRunner
-from python_plugin.tools.linter import Linter
+from python_plugin.analyzer.parser import Parser
 from python_plugin.execution.executor import Executor
 from python_plugin.execution.sandbox import Sandbox
+from python_plugin.tools.code_reader import CodeReader
+from python_plugin.tools.code_search import CodeSearch
+from python_plugin.tools.code_writer import CodeWriter
+from python_plugin.tools.linter import Linter
+from python_plugin.tools.test_runner import TestRunner
 
 
 class PythonPlugin:
@@ -61,7 +62,7 @@ class PythonPlugin:
                     "success": False,
                     "error": f"Unknown operation: {operation}"
                 }
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             return {
                 "success": False,
                 "error": str(e)

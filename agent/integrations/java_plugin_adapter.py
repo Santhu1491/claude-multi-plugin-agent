@@ -1,10 +1,10 @@
 """Adapter for communicating with the Java plugin."""
 
 import subprocess
-import os
-import shutil
 from pathlib import Path
 from typing import Any
+
+from agent.utils.tool_resolver import ToolResolver
 
 
 class JavaPluginAdapter:
@@ -31,24 +31,7 @@ class JavaPluginAdapter:
 
         payload = str(parameters)
 
-        maven_command = shutil.which("mvn")
-
-        if not maven_command:
-            maven_home = os.getenv("MAVEN_HOME")
-
-            if maven_home:
-                candidate = Path(maven_home) / "bin" / "mvn.cmd"
-
-                if candidate.exists():
-                    maven_command = str(candidate)
-
-        if not maven_command:
-            fallback = Path(
-                r"C:\Program Files\Apache\maven\apache-maven-3.9.16\bin\mvn.cmd"
-            )
-        
-            if fallback.exists():
-                maven_command = str(fallback)
+        maven_command = ToolResolver.find_maven()
         
         if not maven_command:
             return {
@@ -72,6 +55,7 @@ class JavaPluginAdapter:
                 capture_output=True,
                 text=True,
                 timeout=60,
+                check=False,
             )
 
             output = result.stdout.strip()
@@ -101,7 +85,7 @@ class JavaPluginAdapter:
                 "error": "Java plugin execution timed out",
             }
 
-        except Exception as exc:
+        except OSError as exc:
             return {
                 "success": False,
                 "error": str(exc),

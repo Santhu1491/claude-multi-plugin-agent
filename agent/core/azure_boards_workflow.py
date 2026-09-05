@@ -21,30 +21,40 @@ class AzureBoardsWorkflow:
 
     def execute(self, work_item_id: int) -> dict:
         """Process a single Azure Boards work item."""
-
+    
         work_item = self.azure_client.get_work_item(
             work_item_id
         )
-
+    
         request = self.mapper.to_agent_request(
             work_item
         )
-
+    
         agent_result = self.agent.process_request(
             request
         )
-
+    
         publish_result = None
-
-        if self.publisher is not None:
+        published = False
+    
+        if (
+            self.publisher is not None
+            and agent_result.get("success", False)
+        ):
             publish_result = self.publisher.publish(
                 request=request,
                 agent_result=agent_result,
             )
-
+            published = True
+    
         return {
             "work_item_id": work_item_id,
             "request": request,
-            "result": agent_result,
+            "agent_result": agent_result,
+            "published": published,
             "publish_result": publish_result,
+            "success": agent_result.get(
+                "success",
+                False,
+            ),
         }

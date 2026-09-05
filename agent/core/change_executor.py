@@ -2,11 +2,11 @@
 
 from agent.core.change_builder import ChangeBuilder
 from agent.core.change_planner import ChangePlanner
-from agent.core.workspace import Workspace
-from agent.core.workspace_writer import WorkspaceWriter
 from agent.core.healing_executor import HealingExecutor
 from agent.core.quality_gate import QualityGate
 from agent.core.repair_generator import RepairGenerator
+from agent.core.workspace import Workspace
+from agent.core.workspace_writer import WorkspaceWriter
 from agent.integrations.claude import ClaudeClient
 
 

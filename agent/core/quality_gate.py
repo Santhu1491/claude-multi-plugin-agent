@@ -4,6 +4,7 @@ import subprocess
 from pathlib import Path
 
 from agent.models.quality_result import QualityResult
+from agent.utils.tool_resolver import ToolResolver
 
 
 class QualityGate:
@@ -28,6 +29,7 @@ class QualityGate:
             cwd=self.root,
             capture_output=True,
             text=True,
+            check=False,
         )
 
         success = result.returncode == 0
@@ -55,6 +57,7 @@ class QualityGate:
                 cwd=self.root,
                 capture_output=True,
                 text=True,
+                check=False,
             )
         except FileNotFoundError:
             return QualityResult(
@@ -116,8 +119,18 @@ class QualityGate:
     def run_java(self) -> QualityResult:
         """Run Java quality checks using Maven."""
 
+        maven = ToolResolver.find_maven()
+        
+        if not maven:
+            return QualityResult(
+                success=False,
+                technology="java",
+                checks_run=["maven-test"],
+                errors="Maven could not be found.",
+            )
+        
         maven_command = [
-            r"C:\Program Files\Apache\maven\apache-maven-3.9.16\bin\mvn.cmd",
+            maven,
             "test",
         ]
 
@@ -128,6 +141,7 @@ class QualityGate:
                 capture_output=True,
                 text=True,
                 timeout=120,
+                check=False,
             )
         except FileNotFoundError:
             return QualityResult(

@@ -1,6 +1,5 @@
 """Tests for the executor module."""
 
-import pytest
 from python_plugin.execution.executor import Executor
 from python_plugin.execution.sandbox import Sandbox
 

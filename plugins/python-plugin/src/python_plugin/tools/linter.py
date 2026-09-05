@@ -74,13 +74,13 @@ class Linter:
         issues = []
         
         for node in ast.walk(tree):
-            if isinstance(node, (ast.FunctionDef, ast.ClassDef)):
-                if not ast.get_docstring(node):
-                    issues.append({
-                        "type": "missing_docstring",
-                        "line": node.lineno,
-                        "message": f"{node.__class__.__name__} '{node.name}' lacks a docstring",
-                        "severity": "info"
-                    })
+            if (isinstance(node, (ast.FunctionDef, ast.ClassDef))
+    and not ast.get_docstring(node)):
+                issues.append({
+                    "type": "missing_docstring",
+                    "line": node.lineno,
+                    "message": f"{node.__class__.__name__} '{node.name}' lacks a docstring",
+                    "severity": "info"
+                })
         
         return issues

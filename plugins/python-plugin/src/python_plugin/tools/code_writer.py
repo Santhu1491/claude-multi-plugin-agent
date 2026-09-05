@@ -21,7 +21,7 @@ class CodeWriter:
                 "path": str(path),
                 "bytes_written": len(content)
             }
-        except Exception as e:
+        except (OSError, UnicodeError) as e:
             return {
                 "success": False,
                 "error": str(e)
@@ -34,7 +34,7 @@ class CodeWriter:
                 f.write(content)
             
             return {"success": True}
-        except Exception as e:
+        except (OSError, UnicodeError) as e:
             return {"success": False, "error": str(e)}
 
     def insert_at_line(self, file_path: str, line_num: int, content: str) -> dict[str, Any]:
@@ -49,7 +49,7 @@ class CodeWriter:
                 f.writelines(lines)
             
             return {"success": True}
-        except Exception as e:
+        except (OSError, UnicodeError) as e:
             return {"success": False, "error": str(e)}
 
     def replace_in_file(self, file_path: str, old: str, new: str) -> dict[str, Any]:
@@ -67,5 +67,5 @@ class CodeWriter:
                 "success": True,
                 "replacements": content.count(old)
             }
-        except Exception as e:
+        except (OSError, UnicodeError) as e:
             return {"success": False, "error": str(e)}

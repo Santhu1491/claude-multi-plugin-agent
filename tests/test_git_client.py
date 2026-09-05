@@ -199,3 +199,65 @@ def test_git_client_push(tmp_path: Path):
     ).stdout
 
     assert "feature/test-push" in branches
+
+def test_git_client_branch_exists(tmp_path: Path):
+    repo = create_test_repo(tmp_path)
+
+    client = GitClient(repo)
+
+    assert client.branch_exists(
+        client.current_branch()
+    ) is True
+
+    assert client.branch_exists(
+        "missing-branch"
+    ) is False
+
+
+def test_git_client_has_changes(tmp_path: Path):
+    repo = create_test_repo(tmp_path)
+
+    client = GitClient(repo)
+
+    assert client.has_changes() is False
+
+    (repo / "app.py").write_text(
+        "print('hello')\n",
+        encoding="utf-8",
+    )
+
+    assert client.has_changes() is True
+
+
+def test_git_client_reuses_existing_branch(tmp_path: Path):
+    repo = create_test_repo(tmp_path)
+
+    client = GitClient(repo)
+
+    client.create_branch(
+        "feature/existing"
+    )
+
+    run_git(
+        repo,
+        "switch",
+        "-",
+    )
+
+    branch = client.create_branch(
+        "feature/existing"
+    )
+
+    assert branch == "feature/existing"
+
+
+def test_git_client_rejects_empty_commit(tmp_path: Path):
+    repo = create_test_repo(tmp_path)
+
+    client = GitClient(repo)
+
+    try:
+        client.commit("feat: nothing")
+        assert False
+    except RuntimeError as exc:
+        assert "No repository changes" in str(exc)

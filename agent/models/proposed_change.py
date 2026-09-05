@@ -1,5 +1,6 @@
-from dataclasses import dataclass
 import difflib
+from dataclasses import dataclass
+
 
 @dataclass
 class ProposedChange:

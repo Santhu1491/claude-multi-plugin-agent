@@ -1,7 +1,6 @@
 """Integration tests for the agent core."""
 
 import pytest
-from pathlib import Path
 
 
 class TestAgentIntegration:
@@ -10,8 +9,8 @@ class TestAgentIntegration:
     @pytest.fixture
     def agent(self):
         """Create an agent instance."""
-        from agent.core.agent import Agent
         from agent.config.settings import Settings
+        from agent.core.agent import Agent
         
         settings = Settings()
         return Agent(settings)
@@ -66,6 +65,8 @@ class TestAgentIntegration:
         # Mock plugin
         class MockPlugin:
             def execute(self, request):
+                assert request["operation"] == "test"
+                assert request["parameters"] == {}
                 return {"success": True, "data": "mock result"}
         
         executor.register_plugin("mock", MockPlugin())
@@ -107,13 +108,7 @@ class TestAgentIntegration:
     def test_agent_process_request_integration(self, agent):
         """Test agent processes request end-to-end."""
         # Note: This test requires plugins to be properly installed
-        # It may fail if plugins are not available
-        
-        request = {
-            "content": "test request",
-            "operation": "test"
-        }
-        
+        # It may fail if plugins are not available        
         # This is a basic structure test
         # Actual execution would require plugins
         assert hasattr(agent, 'context')

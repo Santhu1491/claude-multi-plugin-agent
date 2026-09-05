@@ -1,31 +1,77 @@
-"""Application settings and configuration."""
+"""Application configuration."""
 
 import os
-from dataclasses import dataclass
-from pathlib import Path
+
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
-@dataclass
 class Settings:
-    """Application configuration settings."""
+    """Central application settings loaded from environment variables."""
 
-    version: str = "0.1.0"
-    api_key: str | None = None
-    plugin_directory: Path | None = None
-    log_level: str = "INFO"
-    max_retries: int = 3
-    timeout: int = 30
+    def __init__(self) -> None:
+        self.anthropic_api_key = os.getenv(
+            "ANTHROPIC_API_KEY"
+        )
 
-    def __post_init__(self) -> None:
-        """Load settings from environment."""
-        self.api_key = os.getenv("ANTHROPIC_API_KEY")
-        
-        if self.plugin_directory is None:
-            self.plugin_directory = Path(__file__).parent.parent.parent / "plugins"
+        self.log_level = os.getenv(
+            "LOG_LEVEL",
+            "INFO",
+        )
 
-    def validate(self) -> bool:
-        """Validate configuration."""
-        if not self.api_key:
-            print("Warning: ANTHROPIC_API_KEY not set")
-            return False
-        return True
+        self.max_retries = int(
+            os.getenv(
+                "MAX_RETRIES",
+                "3",
+            )
+        )
+
+        self.timeout = int(
+            os.getenv(
+                "TIMEOUT",
+                "30",
+            )
+        )
+
+        self.plugin_directory = os.getenv(
+            "PLUGIN_DIRECTORY",
+            "plugins",
+        )
+
+        self.version = os.getenv(
+            "APP_VERSION",
+            "0.1.0",
+        )
+
+        self.azure_devops_org = os.getenv(
+            "AZURE_DEVOPS_ORG"
+        )
+
+        self.azure_devops_project = os.getenv(
+            "AZURE_DEVOPS_PROJECT"
+        )
+
+        self.azure_devops_pat = os.getenv(
+            "AZURE_DEVOPS_PAT"
+        )
+
+        self.azure_devops_repository = os.getenv(
+            "AZURE_DEVOPS_REPOSITORY"
+        )
+
+        self.default_branch = os.getenv(
+            "DEFAULT_BRANCH",
+            "main",
+        )
+
+        self.self_heal_max_attempts = int(
+            os.getenv(
+                "SELF_HEAL_MAX_ATTEMPTS",
+                "3",
+            )
+        )
+
+        self.maven_home = os.getenv(
+            "MAVEN_HOME"
+        )

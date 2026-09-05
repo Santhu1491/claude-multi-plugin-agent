@@ -1,6 +1,7 @@
 """Jira Cloud integration."""
 
 import os
+
 import requests
 
 

@@ -1,7 +1,7 @@
 """Integration tests for Python plugin."""
 
+
 import pytest
-from pathlib import Path
 
 
 class TestPythonPluginIntegration:

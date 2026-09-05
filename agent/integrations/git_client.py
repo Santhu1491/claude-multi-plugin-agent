@@ -21,6 +21,7 @@ class GitClient:
             cwd=self.repo_path,
             capture_output=True,
             text=True,
+            check=False,
         )
 
         if result.returncode != 0:
@@ -49,13 +50,19 @@ class GitClient:
         )
 
     def create_branch(self, branch_name: str) -> str:
-        """Create and switch to a new branch."""
+        """Create and switch to a branch safely."""
 
-        self._run(
-            "switch",
-            "-c",
-            branch_name,
-        )
+        if self.branch_exists(branch_name):
+            self._run(
+                "switch",
+                branch_name,
+            )
+        else:
+            self._run(
+                "switch",
+                "-c",
+                branch_name,
+            )
 
         return self.current_branch()
 
@@ -67,19 +74,25 @@ class GitClient:
             ".",
         )
 
-
     def commit(self, message: str) -> str:
         """Create a Git commit and return its hash."""
-
+    
         if not message.strip():
             raise ValueError("Commit message cannot be empty.")
-
+    
+        if not self.has_changes():
+            raise RuntimeError(
+                "No repository changes available to commit."
+            )
+    
+        self.stage_all()
+    
         self._run(
             "commit",
             "-m",
             message,
         )
-
+    
         return self._run(
             "rev-parse",
             "HEAD",
@@ -110,3 +123,39 @@ class GitClient:
             remote_name,
             branch,
         )
+
+    def branch_exists(self, branch_name: str) -> bool:
+        """Return True if a local branch already exists."""
+
+        result = subprocess.run(
+            [
+                "git",
+                "branch",
+                "--list",
+                branch_name,
+            ],
+            cwd=self.repo_path,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+
+        return bool(result.stdout.strip())
+
+
+    def has_changes(self) -> bool:
+        """Return True if the working tree has uncommitted changes."""
+
+        return bool(self.status().strip())
+
+
+    def ensure_safe_branch(self) -> None:
+        """Prevent publishing directly from protected branches."""
+
+        branch = self.current_branch()
+
+        if branch in {"main", "master"}:
+            raise RuntimeError(
+                f"Publishing directly from protected branch "
+                f"'{branch}' is not allowed."
+            )

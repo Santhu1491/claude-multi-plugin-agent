@@ -36,7 +36,7 @@ class FileUtils:
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
                 return f.read()
-        except Exception:
+        except (OSError, UnicodeError):
             return None
 
     @staticmethod

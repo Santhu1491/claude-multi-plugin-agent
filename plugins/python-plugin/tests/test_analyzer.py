@@ -1,7 +1,5 @@
 """Tests for the AST analyzer module."""
 
-import ast
-import pytest
 from python_plugin.analyzer.ast_analyzer import ASTAnalyzer
 from python_plugin.analyzer.parser import Parser
 
