@@ -5,24 +5,28 @@ from pathlib import Path
 
 import pytest
 
-MAVEN = (
-    r"C:\Program Files\Apache\maven"
-    r"\apache-maven-3.9.16\bin\mvn.cmd"
-)
+from agent.utils.tool_resolver import ToolResolver
 
+
+@pytest.fixture
+def java_plugin_path():
+    """Get path to Java plugin."""
+    return Path(__file__).parent.parent.parent / "plugins" / "java-plugin"
+
+
+@pytest.fixture
+def maven_command():
+    command = ToolResolver.find_maven()
+    if not command:
+        pytest.skip("Maven is not available")
+    return command
 
 class TestJavaPluginIntegration:
     """Integration tests for the Java plugin."""
-    
-    @pytest.fixture
-    def java_plugin_path(self):
-        """Get path to Java plugin."""
-        return Path(__file__).parent.parent.parent / "plugins" / "java-plugin"
-    
-    def test_java_plugin_builds(self, java_plugin_path):
+    def test_java_plugin_builds(self, java_plugin_path, maven_command):
         """Test that Java plugin builds successfully."""
         result = subprocess.run(
-            [MAVEN, "compile"],
+            [maven_command, "compile"],
             cwd=java_plugin_path,
             capture_output=True,
             text=True,
@@ -31,10 +35,10 @@ class TestJavaPluginIntegration:
         
         assert result.returncode == 0, f"Maven build failed: {result.stderr}"
     
-    def test_java_plugin_tests(self, java_plugin_path):
+    def test_java_plugin_tests(self, java_plugin_path, maven_command):
         """Test that Java plugin tests pass."""
         result = subprocess.run(
-            [MAVEN, "test"],
+            [maven_command, "test"],
             cwd=java_plugin_path,
             capture_output=True,
             text=True,
@@ -44,10 +48,10 @@ class TestJavaPluginIntegration:
         # Tests should pass or at least compile
         assert result.returncode in [0, 1], f"Maven test failed: {result.stderr}"
     
-    def test_java_plugin_main_runs(self, java_plugin_path):
+    def test_java_plugin_main_runs(self, java_plugin_path, maven_command):
         """Test that Java plugin main class runs."""
         result = subprocess.run(
-            [MAVEN, "exec:java", "-Dexec.mainClass=com.claude.plugin.java.Main"],
+            [maven_command, "exec:java", "-Dexec.mainClass=com.claude.plugin.java.Main"],
             cwd=java_plugin_path,
             capture_output=True,
             text=True,
@@ -74,3 +78,5 @@ class TestJavaPluginIntegration:
         assert (analyzer_path / "JavaParser.java").exists()
         assert (analyzer_path / "ASTAnalyzer.java").exists()
         assert (analyzer_path / "DependencyAnalyzer.java").exists()
+
+    
