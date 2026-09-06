@@ -46,6 +46,10 @@ Use this format:
 Rules:
 - action must be either "modify" or "create"
 - use repository-relative paths
+- for "modify", the path MUST exactly match an existing path shown in the repository file tree
+- never guess or shorten an existing repository path
+- preserve directories such as "src" when they appear in the repository tree
+- use "create" only when a genuinely new file is required
 - prefer modifying existing files when appropriate
 - do not invent unnecessary files
 - do not generate source code yet

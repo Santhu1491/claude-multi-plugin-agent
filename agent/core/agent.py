@@ -67,10 +67,17 @@ class Agent:
             max_chars_per_file=3000,
         )
 
+        repository_context = (
+            "Repository file tree:\n"
+            f"{file_tree}\n\n"
+            "Relevant file contents:\n"
+            f"{workspace_context}"
+        )
+
         # Ask Claude to analyze the development request.
         claude_analysis = self._analyze_with_claude(
             request,
-            workspace_context,
+            repository_context,
         )
 
         enriched_request = {
@@ -132,7 +139,7 @@ class Agent:
         # Actually generate, write, validate, and heal repository changes.
         change_result = change_executor.execute(
             request=enriched_request,
-            repository_context=workspace_context,
+            repository_context=repository_context,
             technology=plugin_name,
             apply_changes=True,
         )

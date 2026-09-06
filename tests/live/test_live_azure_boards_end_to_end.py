@@ -32,7 +32,7 @@ def test_live_azure_boards_end_to_end():
 
     azure_client = AzureDevOpsClient()
     agent = Agent(settings)
-    mapper = WorkItemMapper()
+    mapper = WorkItemMapper(azure_client)
 
     git_client = GitClient(
         ".",
