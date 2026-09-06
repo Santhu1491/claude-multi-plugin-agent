@@ -1,4 +1,8 @@
+import pytest
+
 from agent.integrations.claude import ClaudeClient
+
+pytestmark = pytest.mark.live
 
 
 def test_claude_connection():

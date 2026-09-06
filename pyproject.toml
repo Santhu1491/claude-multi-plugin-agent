@@ -32,6 +32,9 @@ include = ["agent*"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
+markers = [
+    "live: tests that require real external credentials or services",
+]
 
 [tool.black]
 line-length = 100

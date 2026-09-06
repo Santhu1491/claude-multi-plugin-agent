@@ -1,6 +1,10 @@
+import pytest
+
 from agent.integrations.azure_devops_client import (
     AzureDevOpsClient,
 )
+
+pytestmark = pytest.mark.live
 
 
 def test_live_get_work_item():

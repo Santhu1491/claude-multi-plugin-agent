@@ -1,6 +1,9 @@
+import pytest
+
 from agent.config.settings import Settings
 from agent.core.agent import Agent
 
+pytestmark = pytest.mark.live
 
 def test_agent_uses_java_plugin():
     settings = Settings()

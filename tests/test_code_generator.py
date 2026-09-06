@@ -1,6 +1,9 @@
+import pytest
+
 from agent.core.code_generator import CodeGenerator
 from agent.integrations.claude import ClaudeClient
 
+pytestmark = pytest.mark.live
 
 def test_code_generator():
     claude = ClaudeClient()

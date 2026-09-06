@@ -29,7 +29,7 @@ steps:
     displayName: "Run Ruff"
 
   - script: |
-      pytest -s
+      pytest -s -m "not live"
     displayName: "Run Python tests"
 
   - task: JavaToolInstaller@0

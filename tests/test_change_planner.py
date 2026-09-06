@@ -1,6 +1,9 @@
+import pytest
+
 from agent.core.change_planner import ChangePlanner
 from agent.integrations.claude import ClaudeClient
 
+pytestmark = pytest.mark.live
 
 def test_change_planner():
     claude = ClaudeClient()

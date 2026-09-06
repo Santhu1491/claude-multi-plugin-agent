@@ -1,6 +1,9 @@
+import pytest
+
 from agent.core.file_selector import FileSelector
 from agent.integrations.claude import ClaudeClient
 
+pytestmark = pytest.mark.live
 
 def test_file_selector():
     claude = ClaudeClient()
