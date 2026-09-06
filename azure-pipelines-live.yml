@@ -1,0 +1,40 @@
+trigger: none
+
+pr: none
+
+variables:
+  - group: ai-agent-live-secrets
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: "3.12"
+    displayName: "Use Python 3.12"
+
+  - script: |
+      python -m pip install --upgrade pip
+      pip install -r requirements.txt
+      pip install -e .
+      pip install -e ./plugins/python-plugin
+    displayName: "Install Python dependencies"
+
+  - task: JavaToolInstaller@0
+    inputs:
+      versionSpec: "17"
+      jdkArchitectureOption: "x64"
+      jdkSourceOption: "PreInstalled"
+    displayName: "Use Java 17"
+
+  - script: |
+      pytest -s -m "live"
+    displayName: "Run live integration tests"
+    env:
+      ANTHROPIC_API_KEY: $(ANTHROPIC_API_KEY)
+      AZURE_DEVOPS_ORG: $(AZURE_DEVOPS_ORG)
+      AZURE_DEVOPS_PROJECT: $(AZURE_DEVOPS_PROJECT)
+      AZURE_DEVOPS_PAT: $(AZURE_DEVOPS_PAT)
+      AZURE_DEVOPS_REPOSITORY: $(AZURE_DEVOPS_REPOSITORY)
+      AZURE_DEVOPS_TEST_WORK_ITEM_ID: $(AZURE_DEVOPS_TEST_WORK_ITEM_ID)
