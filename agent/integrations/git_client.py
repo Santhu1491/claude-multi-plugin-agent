@@ -7,8 +7,9 @@ from pathlib import Path
 class GitClient:
     """Provides safe local Git operations for the agent."""
 
-    def __init__(self, repo_path: str | Path) -> None:
+    def __init__(self, repo_path: str | Path, remote_name: str = "origin",) -> None:
         self.repo_path = Path(repo_path).resolve()
+        self.remote_name = remote_name
 
         if not (self.repo_path / ".git").exists():
             raise ValueError(
@@ -111,7 +112,6 @@ class GitClient:
     def push(
         self,
         branch_name: str | None = None,
-        remote_name: str = "origin",
     ) -> None:
         """Push a branch to the configured remote."""
     
@@ -120,7 +120,7 @@ class GitClient:
         self._run(
             "push",
             "-u",
-            remote_name,
+            self.remote_name,
             branch,
         )
 

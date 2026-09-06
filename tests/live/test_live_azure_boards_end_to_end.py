@@ -10,7 +10,6 @@ from agent.core.work_item_mapper import WorkItemMapper
 from agent.integrations.azure_devops_client import AzureDevOpsClient
 from agent.integrations.git_client import GitClient
 
-
 pytestmark = pytest.mark.live
 
 
@@ -35,7 +34,10 @@ def test_live_azure_boards_end_to_end():
     agent = Agent(settings)
     mapper = WorkItemMapper()
 
-    git_client = GitClient(".")
+    git_client = GitClient(
+        ".",
+        remote_name="azure",
+    )
 
     publisher = AzureBoardsPublisher(
         git_client=git_client,

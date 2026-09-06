@@ -261,3 +261,36 @@ def test_git_client_rejects_empty_commit(tmp_path: Path):
         assert False
     except RuntimeError as exc:
         assert "No repository changes" in str(exc)
+
+def test_push_uses_configured_remote(tmp_path, monkeypatch):
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    (repo / ".git").mkdir()
+
+    client = GitClient(
+        repo,
+        remote_name="azure",
+    )
+
+    calls = []
+
+    def fake_run(*args):
+        calls.append(args)
+        return ""
+
+    monkeypatch.setattr(
+        client,
+        "_run",
+        fake_run,
+    )
+
+    client.push("feature/test")
+
+    assert calls == [
+        (
+            "push",
+            "-u",
+            "azure",
+            "feature/test",
+        )
+    ]
