@@ -60,6 +60,11 @@ Rules:
 - do not invent unnecessary files
 - do not generate source code yet
 - return no markdown and no explanation outside the JSON
+- never modify files under "tests/" unless the development request explicitly asks for test changes
+- never modify "__init__.py" merely to expose or store unrelated functionality unless explicitly required
+- never modify CI, dependency, configuration, or documentation files unless explicitly required
+- if the development request specifies an exact target path, restrict the change plan to that path unless another change is absolutely required
+- for simple validation requests, prefer exactly one file change
 """
 
         response = self.claude.generate(prompt)
