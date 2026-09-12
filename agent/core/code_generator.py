@@ -44,6 +44,11 @@ Rules:
 - Preserve existing behavior unless required by the request.
 - Follow the style and architecture of the existing repository.
 - Do not modify unrelated functionality.
+- Make the smallest implementation necessary to satisfy the request.
+- Do not add new third-party dependencies unless explicitly required by the request or change plan.
+- Do not introduce new frameworks, HTTP servers, CLI modes, infrastructure, or architectural patterns unless explicitly requested.
+- Do not add or update documentation unless explicitly requested.
+- Preserve existing entrypoints unless changing them is necessary.
 """
 
         content = self.claude.generate(prompt)

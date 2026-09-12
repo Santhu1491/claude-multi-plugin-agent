@@ -51,6 +51,12 @@ Rules:
 - preserve directories such as "src" when they appear in the repository tree
 - use "create" only when a genuinely new file is required
 - prefer modifying existing files when appropriate
+- make the smallest change that satisfies the request
+- do not introduce new frameworks or dependencies unless explicitly required
+- do not modify documentation unless the request explicitly asks for documentation
+- do not change entrypoints unless necessary
+- avoid touching more than 1-2 files for simple validation tasks
+- prefer the repository's existing architecture and modules
 - do not invent unnecessary files
 - do not generate source code yet
 - return no markdown and no explanation outside the JSON
