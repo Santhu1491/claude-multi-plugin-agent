@@ -65,6 +65,11 @@ Rules:
 - never modify CI, dependency, configuration, or documentation files unless explicitly required
 - if the development request specifies an exact target path, restrict the change plan to that path unless another change is absolutely required
 - for simple validation requests, prefer exactly one file change
+- if the request specifies an exact target path, only plan changes for that path
+- never modify files under tests/ unless explicitly requested
+- never modify files under plugins/ unless explicitly requested
+- never modify dependency, CI, documentation, or configuration files unless explicitly requested
+- for simple validation requests, prefer exactly one file change
 """
 
         response = self.claude.generate(prompt)
