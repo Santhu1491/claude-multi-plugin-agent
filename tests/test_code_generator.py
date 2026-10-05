@@ -1,13 +1,10 @@
-import pytest
-
 from agent.core.code_generator import CodeGenerator
-from agent.integrations.claude import ClaudeClient
+from tests.fakes.fake_llm import FakeLLM
 
-pytestmark = pytest.mark.live
 
 def test_code_generator():
-    claude = ClaudeClient()
-    generator = CodeGenerator(claude)
+    fake_llm = FakeLLM()
+    generator = CodeGenerator(fake_llm)
 
     request = {
         "message": (
@@ -48,9 +45,7 @@ Existing operations include analyze, lint, test and execute.
         repository_context,
     )
 
-    print("\nGenerated content:")
-    print(content)
-
-    assert content
-    assert "PythonPlugin" in content
-    assert "validate" in content
+    assert content == (
+    'def hello_validation() -> str:\n'
+    '    return "hello from live validation"\n'
+    )

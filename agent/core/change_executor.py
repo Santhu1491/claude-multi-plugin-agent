@@ -7,7 +7,7 @@ from agent.core.quality_gate import QualityGate
 from agent.core.repair_generator import RepairGenerator
 from agent.core.workspace import Workspace
 from agent.core.workspace_writer import WorkspaceWriter
-from agent.integrations.claude import ClaudeClient
+from agent.integrations.llm import LLMClient
 
 
 class ChangeExecutor:
@@ -19,7 +19,7 @@ class ChangeExecutor:
         writer: WorkspaceWriter,
         planner: ChangePlanner,
         builder: ChangeBuilder,
-        claude: ClaudeClient,
+        claude: LLMClient,
     ) -> None:
         self.workspace = workspace
         self.writer = writer

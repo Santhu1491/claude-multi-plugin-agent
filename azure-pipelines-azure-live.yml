@@ -22,7 +22,11 @@ steps:
     displayName: "Install Python dependencies"
 
   - script: |
-      pytest -s -m "live_claude"
-    displayName: "Run Claude smoke test"
+      pytest -s -m "live_azure and not live_claude"
+    displayName: "Run Azure live tests"
     env:
-      ANTHROPIC_API_KEY: $(ANTHROPIC_API_KEY)
+      AZURE_DEVOPS_ORG: $(AZURE_DEVOPS_ORG)
+      AZURE_DEVOPS_PROJECT: $(AZURE_DEVOPS_PROJECT)
+      AZURE_DEVOPS_PAT: $(AZURE_DEVOPS_PAT)
+      AZURE_DEVOPS_REPOSITORY: $(AZURE_DEVOPS_REPOSITORY)
+      AZURE_DEVOPS_TEST_WORK_ITEM_ID: $(AZURE_DEVOPS_TEST_WORK_ITEM_ID)

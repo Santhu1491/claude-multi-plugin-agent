@@ -2,7 +2,7 @@ import pytest
 
 from agent.integrations.claude import ClaudeClient
 
-pytestmark = pytest.mark.live
+pytestmark = pytest.mark.live_claude
 
 
 def test_claude_connection():

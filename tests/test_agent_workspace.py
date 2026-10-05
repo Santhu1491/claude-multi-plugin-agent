@@ -3,19 +3,14 @@ from agent.core.agent import Agent
 from tests.fakes.fake_llm import FakeLLM
 
 
-def test_agent_uses_java_plugin():
+def test_agent_accepts_workspace_root(tmp_path):
     settings = Settings()
     fake_llm = FakeLLM()
 
     agent = Agent(
         settings,
         claude=fake_llm,
+        workspace_root=str(tmp_path),
     )
 
-    response = agent._analyze_with_claude(
-            {"message": "Analyze a Java change"},
-            "Repository context",
-        )
-    
-    assert response
-    assert fake_llm.prompts
+    assert agent.workspace_root == str(tmp_path)

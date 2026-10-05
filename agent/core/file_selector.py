@@ -1,12 +1,13 @@
 """Select repository files relevant to a development request."""
 
-from agent.integrations.claude import ClaudeClient
+# from agent.integrations.claude import ClaudeClient
+from agent.integrations.llm import LLMClient
 
 
 class FileSelector:
     """Uses Claude to identify relevant files from a repository tree."""
 
-    def __init__(self, claude: ClaudeClient) -> None:
+    def __init__(self, claude: LLMClient) -> None:
         self.claude = claude
 
     def select_files(

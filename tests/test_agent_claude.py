@@ -1,26 +1,21 @@
-import pytest
-
 from agent.config.settings import Settings
 from agent.core.agent import Agent
+from tests.fakes.fake_llm import FakeLLM
 
-pytestmark = pytest.mark.live
 
-def test_agent_uses_claude():
+def test_agent_uses_injected_llm():
     settings = Settings()
-    agent = Agent(settings)
+    fake_llm = FakeLLM()
 
-    request = {
-    "message": (
-        "Update the existing Python plugin so that it can support "
-        "a new operation called validate. Identify which existing "
-        "repository files should be modified."
+    agent = Agent(
+        settings,
+        claude=fake_llm,
     )
-    }
 
-    result = agent.process_request(request)
+    response = agent._analyze_with_claude(
+        {"message": "Analyze a Python change"},
+        "Repository context",
+    )
 
-    print("\nAgent result:")
-    print(result)
-
-    assert "claude_analysis" in result
-    assert result["claude_analysis"]
+    assert response
+    assert fake_llm.prompts

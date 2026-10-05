@@ -1,13 +1,10 @@
-import pytest
-
 from agent.core.change_planner import ChangePlanner
-from agent.integrations.claude import ClaudeClient
+from tests.fakes.fake_llm import FakeLLM
 
-pytestmark = pytest.mark.live
 
 def test_change_planner():
-    claude = ClaudeClient()
-    planner = ChangePlanner(claude)
+    fake_llm = FakeLLM()
+    planner = ChangePlanner(fake_llm)
 
     request = {
         "message": (
@@ -23,12 +20,6 @@ class PythonPlugin:
 
     def execute(self, request):
         operation = request.get("operation")
-
-        if operation == "analyze":
-            return self.handle_analyze(request)
-
-        if operation == "lint":
-            return self.handle_lint(request)
 """
 
     plan = planner.create_change_plan(
@@ -36,17 +27,10 @@ class PythonPlugin:
         repository_context,
     )
 
-    print("\nChange plan:")
-    for change in plan:
-        print(change)
-
-    assert plan
-    assert all(
-        change["action"] in {"modify", "create"}
-        for change in plan
-    )
-
-    assert any(
-        "python_plugin" in change["path"]
-        for change in plan
-    )
+    assert plan == [
+        {
+            "path": "agent/utils/live_validation.py",
+            "action": "create",
+            "reason": "Add requested validation function",
+        }
+    ]

@@ -2,7 +2,8 @@
 
 from typing import Any
 
-from agent.integrations.claude import ClaudeClient
+# from agent.integrations.claude import ClaudeClient
+from agent.integrations.llm import LLMClient
 from agent.models.proposed_change import ProposedChange
 from agent.models.quality_result import QualityResult
 
@@ -10,7 +11,7 @@ from agent.models.quality_result import QualityResult
 class RepairGenerator:
     """Uses Claude to repair generated code using quality gate feedback."""
 
-    def __init__(self, claude: ClaudeClient) -> None:
+    def __init__(self, claude: LLMClient) -> None:
         self.claude = claude
 
     def repair_change(

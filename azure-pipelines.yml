@@ -29,7 +29,7 @@ steps:
     displayName: "Run Ruff"
 
   - script: |
-      pytest -s -m "not live"
+      pytest -s -m "not live_claude and not live_azure"
     displayName: "Run Python tests"
 
   - task: JavaToolInstaller@0

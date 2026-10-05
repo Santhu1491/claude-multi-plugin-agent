@@ -10,7 +10,10 @@ from agent.core.work_item_mapper import WorkItemMapper
 from agent.integrations.azure_devops_client import AzureDevOpsClient
 from agent.integrations.git_client import GitClient
 
-pytestmark = pytest.mark.live
+pytestmark = [
+    pytest.mark.live_azure,
+    pytest.mark.live_claude,
+]
 
 
 def test_live_azure_boards_end_to_end():

@@ -1,27 +1,50 @@
-from agent.core.azure_boards_publisher import (
-    AzureBoardsPublisher,
-)
+import pytest
+
+from agent.core.azure_boards_publisher import AzureBoardsPublisher
 
 
 class FakeGitClient:
-    def __init__(self):
+    def __init__(
+        self,
+        changes: bool = True,
+        active_branch: str = "main",
+    ):
         self.calls = []
+        self.changes = changes
+        self.active_branch = active_branch
 
     def has_changes(self):
         self.calls.append(
             ("has_changes",)
         )
-        return True
+        return self.changes
+
+    def current_branch(self):
+        self.calls.append(
+            ("current_branch",)
+        )
+        return self.active_branch
 
     def create_branch(self, branch_name):
         self.calls.append(
             ("create_branch", branch_name)
         )
+        self.active_branch = branch_name
+
+        return branch_name
 
     def ensure_safe_branch(self):
         self.calls.append(
             ("ensure_safe_branch",)
         )
+
+        if self.active_branch in {
+            "main",
+            "master",
+        }:
+            raise RuntimeError(
+                "Unsafe branch."
+            )
 
     def commit(self, message):
         self.calls.append(
@@ -34,74 +57,6 @@ class FakeGitClient:
             ("push", branch_name)
         )
 
-
-def test_azure_boards_publisher():
-    git_client = FakeGitClient()
-    azure_client = FakeAzureClient()
-
-    publisher = AzureBoardsPublisher(
-        git_client=git_client,
-        azure_client=azure_client,
-        repository_id="repo-123",
-    )
-
-    result = publisher.publish(
-        request={
-            "work_item_id": 123,
-            "technology": "python",
-            "message": "Implement work item 123",
-        },
-        agent_result={
-            "success": True,
-        },
-    )
-
-    print("\nGit calls:")
-    print(git_client.calls)
-
-    assert result["branch"] == (
-        "feature/work-item-123"
-    )
-
-    assert result["commit"] == "abc123"
-
-    assert result["pr_id"] == 42
-
-    assert git_client.calls == [
-        ("has_changes",),
-        (
-            "create_branch",
-            "feature/work-item-123",
-        ),
-        ("ensure_safe_branch",),
-        (
-            "commit",
-            "feat: implement work item 123",
-        ),
-        (
-            "push",
-            "feature/work-item-123",
-        ),
-    ]
-
-    assert azure_client.calls == [
-        (
-            "repo-123",
-            "feature/work-item-123",
-            "main",
-            "Implement work item 123",
-        )
-    ]
-
-    assert len(azure_client.update_calls) == 1
-
-    updated_work_item_id, fields = (
-        azure_client.update_calls[0]
-    )
-
-    assert updated_work_item_id == 123
-    assert "System.History" in fields
-    assert "PR 42" in fields["System.History"]
 
 class FakeAzureClient:
     def __init__(self):
@@ -145,13 +100,13 @@ class FakeAzureClient:
             "id": work_item_id,
         }
 
-class NoChangesGitClient(FakeGitClient):
-    def has_changes(self):
-        return False
 
+def test_prepare_branch_creates_work_item_branch():
+    git_client = FakeGitClient(
+        changes=False,
+        active_branch="main",
+    )
 
-def test_azure_boards_publisher_rejects_no_changes():
-    git_client = NoChangesGitClient()
     azure_client = FakeAzureClient()
 
     publisher = AzureBoardsPublisher(
@@ -160,7 +115,162 @@ def test_azure_boards_publisher_rejects_no_changes():
         repository_id="repo-123",
     )
 
-    try:
+    branch = publisher.prepare_branch(
+        {
+            "work_item_id": 42,
+        }
+    )
+
+    assert branch == "feature/work-item-42"
+
+    assert git_client.active_branch == (
+        "feature/work-item-42"
+    )
+
+    assert (
+        "create_branch",
+        "feature/work-item-42",
+    ) in git_client.calls
+
+    assert (
+        "ensure_safe_branch",
+    ) in git_client.calls
+
+
+def test_prepare_branch_rejects_dirty_working_tree():
+    git_client = FakeGitClient(
+        changes=True,
+        active_branch="main",
+    )
+
+    azure_client = FakeAzureClient()
+
+    publisher = AzureBoardsPublisher(
+        git_client=git_client,
+        azure_client=azure_client,
+        repository_id="repo-123",
+    )
+
+    with pytest.raises(
+        RuntimeError,
+        match="Working tree must be clean",
+    ):
+        publisher.prepare_branch(
+            {
+                "work_item_id": 42,
+            }
+        )
+
+
+def test_prepare_branch_requires_base_branch():
+    git_client = FakeGitClient(
+        changes=False,
+        active_branch="feature/old-work",
+    )
+
+    azure_client = FakeAzureClient()
+
+    publisher = AzureBoardsPublisher(
+        git_client=git_client,
+        azure_client=azure_client,
+        repository_id="repo-123",
+    )
+
+    with pytest.raises(
+        RuntimeError,
+        match="must start from",
+    ):
+        publisher.prepare_branch(
+            {
+                "work_item_id": 42,
+            }
+        )
+
+
+def test_azure_boards_publisher():
+    git_client = FakeGitClient(
+        changes=True,
+        active_branch="feature/work-item-123",
+    )
+
+    azure_client = FakeAzureClient()
+
+    publisher = AzureBoardsPublisher(
+        git_client=git_client,
+        azure_client=azure_client,
+        repository_id="repo-123",
+    )
+
+    result = publisher.publish(
+        request={
+            "work_item_id": 123,
+            "technology": "python",
+            "message": "Implement work item 123",
+        },
+        agent_result={
+            "success": True,
+        },
+    )
+
+    assert result["branch"] == (
+        "feature/work-item-123"
+    )
+
+    assert result["commit"] == "abc123"
+    assert result["pr_id"] == 42
+
+    assert (
+        "commit",
+        "feat: implement work item 123",
+    ) in git_client.calls
+
+    assert (
+        "push",
+        "feature/work-item-123",
+    ) in git_client.calls
+
+    assert azure_client.calls == [
+        (
+            "repo-123",
+            "feature/work-item-123",
+            "main",
+            "Implement work item 123",
+        )
+    ]
+
+    assert len(
+        azure_client.update_calls
+    ) == 1
+
+    updated_work_item_id, fields = (
+        azure_client.update_calls[0]
+    )
+
+    assert updated_work_item_id == 123
+    assert "System.History" in fields
+    assert "PR 42" in fields[
+        "System.History"
+    ]
+
+
+def test_azure_boards_publisher_rejects_no_changes():
+    git_client = FakeGitClient(
+        changes=False,
+        active_branch="feature/work-item-123",
+    )
+
+    azure_client = FakeAzureClient()
+
+    publisher = AzureBoardsPublisher(
+        git_client=git_client,
+        azure_client=azure_client,
+        repository_id="repo-123",
+    )
+
+    with pytest.raises(
+        RuntimeError,
+        match="No repository changes",
+    ):
         publisher.publish(
             request={
                 "work_item_id": 123,
@@ -172,15 +282,16 @@ def test_azure_boards_publisher_rejects_no_changes():
             },
         )
 
-        assert False
+    assert azure_client.calls == []
+    assert azure_client.update_calls == []
 
-    except RuntimeError as exc:
-        assert "No repository changes" in str(exc)
-
-    assert len(azure_client.calls) == 0
 
 def test_azure_boards_publisher_rejects_failed_agent_result():
-    git_client = FakeGitClient()
+    git_client = FakeGitClient(
+        changes=True,
+        active_branch="feature/work-item-123",
+    )
+
     azure_client = FakeAzureClient()
 
     publisher = AzureBoardsPublisher(
@@ -189,7 +300,10 @@ def test_azure_boards_publisher_rejects_failed_agent_result():
         repository_id="repo-123",
     )
 
-    try:
+    with pytest.raises(
+        RuntimeError,
+        match="Agent execution failed",
+    ):
         publisher.publish(
             request={
                 "work_item_id": 123,
@@ -201,11 +315,38 @@ def test_azure_boards_publisher_rejects_failed_agent_result():
             },
         )
 
-        assert False
-
-    except RuntimeError as exc:
-        assert "Agent execution failed" in str(exc)
-
     assert git_client.calls == []
     assert azure_client.calls == []
     assert azure_client.update_calls == []
+
+
+def test_azure_boards_publisher_rejects_wrong_active_branch():
+    git_client = FakeGitClient(
+        changes=True,
+        active_branch="main",
+    )
+
+    azure_client = FakeAzureClient()
+
+    publisher = AzureBoardsPublisher(
+        git_client=git_client,
+        azure_client=azure_client,
+        repository_id="repo-123",
+    )
+
+    with pytest.raises(
+        RuntimeError,
+        match="Expected active branch",
+    ):
+        publisher.publish(
+            request={
+                "work_item_id": 123,
+                "technology": "python",
+                "message": "Implement work item 123",
+            },
+            agent_result={
+                "success": True,
+            },
+        )
+
+    assert azure_client.calls == []

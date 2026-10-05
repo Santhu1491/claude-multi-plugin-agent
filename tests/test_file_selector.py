@@ -1,12 +1,9 @@
-import pytest
-
 from agent.core.file_selector import FileSelector
-from agent.integrations.claude import ClaudeClient
+from tests.fakes.fake_llm import FakeLLM
 
-pytestmark = pytest.mark.live
 
 def test_file_selector():
-    claude = ClaudeClient()
+    claude = FakeLLM()
     selector = FileSelector(claude)
 
     file_tree = """
@@ -30,12 +27,5 @@ Repository files:
         file_tree,
     )
 
-    print("\nSelected files:")
-    for file in files:
-        print(file)
-
     assert files
-    assert any(
-        "python_plugin" in file
-        for file in files
-    )
+    assert files == ["agent/utils/__init__.py"]

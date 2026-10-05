@@ -2,13 +2,14 @@
 
 from typing import Any
 
-from agent.integrations.claude import ClaudeClient
+# from agent.integrations.claude import ClaudeClient
+from agent.integrations.llm import LLMClient
 
 
 class CodeGenerator:
     """Uses Claude to generate complete file contents."""
 
-    def __init__(self, claude: ClaudeClient) -> None:
+    def __init__(self, claude: LLMClient) -> None:
         self.claude = claude
 
     def generate_file_content(

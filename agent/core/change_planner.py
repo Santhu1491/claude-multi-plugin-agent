@@ -3,13 +3,14 @@
 import json
 from typing import Any
 
-from agent.integrations.claude import ClaudeClient
+# from agent.integrations.claude import ClaudeClient
+from agent.integrations.llm import LLMClient
 
 
 class ChangePlanner:
     """Uses Claude to propose repository file changes."""
 
-    def __init__(self, claude: ClaudeClient) -> None:
+    def __init__(self, claude: LLMClient) -> None:
         self.claude = claude
 
     def create_change_plan(

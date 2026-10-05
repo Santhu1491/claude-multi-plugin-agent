@@ -18,16 +18,22 @@ from agent.core.workspace import Workspace
 from agent.core.workspace_writer import WorkspaceWriter
 from agent.integrations.claude import ClaudeClient
 from agent.integrations.java_plugin_adapter import JavaPluginAdapter
+from agent.integrations.llm import LLMClient
 
 
 class Agent:
     """Orchestrates Claude reasoning, plugin routing, planning, and execution."""
 
-    def __init__(self, settings: Settings) -> None:
+    def __init__(self, settings: Settings, claude: LLMClient | None = None, workspace_root: str = ".",) -> None:
         self.settings = settings
         self.context = Context()
+        self.workspace_root = workspace_root
 
-        self.claude = ClaudeClient()
+        self.claude = (
+        claude
+        if claude is not None
+        else ClaudeClient()
+        )
         self.file_selector = FileSelector(self.claude)
 
         self.router = Router()
@@ -53,7 +59,7 @@ class Agent:
         self.context.add_message(request)
 
         # Inspect the repository.
-        workspace = Workspace(".")
+        workspace = Workspace(self.workspace_root)
 
         file_tree = workspace.build_file_tree()
 

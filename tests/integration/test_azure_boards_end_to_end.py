@@ -87,22 +87,41 @@ class FakeAzureDevOpsClient:
 class FakeGitClient:
     def __init__(self):
         self.calls = []
+        self.active_branch = "main"
+        self.changes = False
 
     def has_changes(self):
         self.calls.append(
             ("has_changes",)
         )
-        return True
+        return self.changes
+
+    def current_branch(self):
+        self.calls.append(
+            ("current_branch",)
+        )
+        return self.active_branch
 
     def create_branch(self, branch_name):
         self.calls.append(
             ("create_branch", branch_name)
         )
+        self.active_branch = branch_name
+
+        return branch_name
 
     def ensure_safe_branch(self):
         self.calls.append(
             ("ensure_safe_branch",)
         )
+
+        if self.active_branch in {
+            "main",
+            "master",
+        }:
+            raise RuntimeError(
+                "Unsafe branch."
+            )
 
     def commit(self, message):
         self.calls.append(
@@ -117,11 +136,15 @@ class FakeGitClient:
 
 
 class FakeAgent:
-    def __init__(self):
+    def __init__(self, git_client):
         self.received_request = None
+        self.git_client = git_client
 
     def process_request(self, request):
         self.received_request = request
+
+        # Simulate the agent modifying repository files.
+        self.git_client.changes = True
 
         return {
             "plugin": request["technology"],
@@ -132,7 +155,10 @@ class FakeAgent:
 def test_azure_boards_end_to_end_workflow():
     azure_client = FakeAzureDevOpsClient()
     git_client = FakeGitClient()
-    agent = FakeAgent()
+
+    agent = FakeAgent(
+        git_client=git_client,
+    )
 
     mapper = WorkItemMapper(
         azure_client=azure_client,
@@ -157,6 +183,10 @@ def test_azure_boards_end_to_end_workflow():
 
     assert result["work_item_id"] == 123
 
+    assert result["prepared_branch"] == (
+        "feature/work-item-123"
+    )
+
     assert (
         agent.received_request["technology"]
         == "python"
@@ -167,15 +197,27 @@ def test_azure_boards_end_to_end_workflow():
         == "Add validation support"
     )
 
-    assert result["agent_result"]["success"] is True
+    assert result[
+        "agent_result"
+    ]["success"] is True
 
-    assert result["publish_result"]["branch"] == (
+    assert result["published"] is True
+
+    assert result[
+        "publish_result"
+    ]["branch"] == "feature/work-item-123"
+
+    assert result[
+        "publish_result"
+    ]["commit"] == "abc123"
+
+    assert result[
+        "publish_result"
+    ]["pr_id"] == 42
+
+    assert git_client.active_branch == (
         "feature/work-item-123"
     )
-
-    assert result["publish_result"]["commit"] == "abc123"
-
-    assert result["publish_result"]["pr_id"] == 42
 
     assert azure_client.pr_calls == [
         (
@@ -195,5 +237,9 @@ def test_azure_boards_end_to_end_workflow():
     )
 
     assert work_item_id == 123
+
     assert "System.History" in fields
-    assert "PR 42" in fields["System.History"]
+
+    assert "PR 42" in fields[
+        "System.History"
+    ]

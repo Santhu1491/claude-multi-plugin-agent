@@ -3,7 +3,7 @@ from agent.core.agent import Agent
 from tests.fakes.fake_llm import FakeLLM
 
 
-def test_agent_uses_java_plugin():
+def test_agent_accepts_injected_llm():
     settings = Settings()
     fake_llm = FakeLLM()
 
@@ -12,10 +12,5 @@ def test_agent_uses_java_plugin():
         claude=fake_llm,
     )
 
-    response = agent._analyze_with_claude(
-            {"message": "Analyze a Java change"},
-            "Repository context",
-        )
-    
-    assert response
-    assert fake_llm.prompts
+    assert agent.claude is fake_llm
+    assert agent.file_selector.claude is fake_llm

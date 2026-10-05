@@ -105,7 +105,7 @@ class TestAgentIntegration:
         assert len(context.messages) == 0
         assert len(context.state) == 0
     
-    @pytest.mark.live
+    # @pytest.mark.live
     def test_agent_process_request_integration(self, agent):
         """Test agent processes request end-to-end."""
         # Note: This test requires plugins to be properly installed

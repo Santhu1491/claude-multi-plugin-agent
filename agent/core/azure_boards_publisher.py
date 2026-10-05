@@ -5,17 +5,57 @@ from agent.integrations.git_client import GitClient
 
 
 class AzureBoardsPublisher:
-    """Creates a branch, commits changes, and pushes them."""
+    """Creates, commits, pushes, and publishes Azure Boards changes."""
 
     def __init__(
         self,
         git_client: GitClient,
         azure_client: AzureDevOpsClient,
         repository_id: str,
+        base_branch: str = "main",
     ) -> None:
         self.git_client = git_client
         self.azure_client = azure_client
         self.repository_id = repository_id
+        self.base_branch = base_branch
+
+    def prepare_branch(
+        self,
+        request: dict,
+    ) -> str:
+        """Create the work-item branch before repository changes begin."""
+
+        if self.git_client.has_changes():
+            raise RuntimeError(
+                "Working tree must be clean before starting agent execution."
+            )
+
+        current_branch = self.git_client.current_branch()
+
+        if current_branch != self.base_branch:
+            raise RuntimeError(
+                f"Agent execution must start from "
+                f"'{self.base_branch}', not '{current_branch}'."
+            )
+
+        work_item_id = request.get("work_item_id")
+
+        if work_item_id is None:
+            raise ValueError(
+                "work_item_id is required to create a feature branch."
+            )
+
+        branch_name = (
+            f"feature/work-item-{work_item_id}"
+        )
+
+        self.git_client.create_branch(
+            branch_name
+        )
+
+        self.git_client.ensure_safe_branch()
+
+        return branch_name
 
     def publish(
         self,
@@ -30,6 +70,11 @@ class AzureBoardsPublisher:
             )
 
         work_item_id = request.get("work_item_id")
+
+        if work_item_id is None:
+            raise ValueError(
+                "work_item_id is required to publish changes."
+            )
 
         branch_name = (
             f"feature/work-item-{work_item_id}"
@@ -49,9 +94,13 @@ class AzureBoardsPublisher:
                 "No repository changes available to publish."
             )
 
-        self.git_client.create_branch(
-            branch_name
-        )
+        current_branch = self.git_client.current_branch()
+
+        if current_branch != branch_name:
+            raise RuntimeError(
+                f"Expected active branch '{branch_name}', "
+                f"but found '{current_branch}'."
+            )
 
         self.git_client.ensure_safe_branch()
 
@@ -66,7 +115,7 @@ class AzureBoardsPublisher:
         pr = self.azure_client.create_pull_request(
             repository_id=self.repository_id,
             source_branch=branch_name,
-            target_branch="main",
+            target_branch=self.base_branch,
             title=pr_title,
             description=(
                 f"Automated implementation for "
